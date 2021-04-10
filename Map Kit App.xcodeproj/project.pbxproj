@@ -9,19 +9,23 @@
 /* Begin PBXBuildFile section */
 		A637707126213E6C00E42F7E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A637707026213E6C00E42F7E /* AppDelegate.swift */; };
 		A637707326213E6C00E42F7E /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A637707226213E6C00E42F7E /* SceneDelegate.swift */; };
-		A637707526213E6C00E42F7E /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A637707426213E6C00E42F7E /* ViewController.swift */; };
 		A637707A26213E6E00E42F7E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A637707926213E6E00E42F7E /* Assets.xcassets */; };
 		A637707D26213E6E00E42F7E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A637707B26213E6E00E42F7E /* LaunchScreen.storyboard */; };
+		A637708B26213F2A00E42F7E /* MapController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A637708A26213F2A00E42F7E /* MapController.swift */; };
+		A637708F26213FFD00E42F7E /* UIView+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A637708E26213FFD00E42F7E /* UIView+Extensions.swift */; };
+		A6377092262148C700E42F7E /* LocationRequestController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6377091262148C700E42F7E /* LocationRequestController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		A637706D26213E6C00E42F7E /* Map Kit App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Map Kit App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A637707026213E6C00E42F7E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A637707226213E6C00E42F7E /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		A637707426213E6C00E42F7E /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		A637707926213E6E00E42F7E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A637707C26213E6E00E42F7E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		A637707E26213E6E00E42F7E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A637708A26213F2A00E42F7E /* MapController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapController.swift; sourceTree = "<group>"; };
+		A637708E26213FFD00E42F7E /* UIView+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Extensions.swift"; sourceTree = "<group>"; };
+		A6377091262148C700E42F7E /* LocationRequestController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationRequestController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,14 +58,32 @@
 		A637706F26213E6C00E42F7E /* Map Kit App */ = {
 			isa = PBXGroup;
 			children = (
+				A637708D26213FF100E42F7E /* Extensions */,
+				A637708926213F1D00E42F7E /* Controllers */,
 				A637707026213E6C00E42F7E /* AppDelegate.swift */,
 				A637707226213E6C00E42F7E /* SceneDelegate.swift */,
-				A637707426213E6C00E42F7E /* ViewController.swift */,
 				A637707926213E6E00E42F7E /* Assets.xcassets */,
 				A637707B26213E6E00E42F7E /* LaunchScreen.storyboard */,
 				A637707E26213E6E00E42F7E /* Info.plist */,
 			);
 			path = "Map Kit App";
+			sourceTree = "<group>";
+		};
+		A637708926213F1D00E42F7E /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				A637708A26213F2A00E42F7E /* MapController.swift */,
+				A6377091262148C700E42F7E /* LocationRequestController.swift */,
+			);
+			path = Controllers;
+			sourceTree = "<group>";
+		};
+		A637708D26213FF100E42F7E /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				A637708E26213FFD00E42F7E /* UIView+Extensions.swift */,
+			);
+			path = Extensions;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -133,9 +155,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A637707526213E6C00E42F7E /* ViewController.swift in Sources */,
 				A637707126213E6C00E42F7E /* AppDelegate.swift in Sources */,
+				A637708B26213F2A00E42F7E /* MapController.swift in Sources */,
+				A637708F26213FFD00E42F7E /* UIView+Extensions.swift in Sources */,
 				A637707326213E6C00E42F7E /* SceneDelegate.swift in Sources */,
+				A6377092262148C700E42F7E /* LocationRequestController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
