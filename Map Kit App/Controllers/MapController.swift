@@ -9,7 +9,7 @@ import UIKit
 import MapKit
 import CoreLocation
 
-class MapController: UIViewController{
+class MapController: UIViewController, CLLocationManagerDelegate{
     // MARK: - Properties
     var mapView: MKMapView = {
         let mapView = MKMapView()
@@ -33,6 +33,12 @@ class MapController: UIViewController{
         enableLocationServices()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        centerMapOnUserLocation()
+    }
+    
     // MARK: - Helpers
     private func setupUI(){
         view.backgroundColor = .green
@@ -45,24 +51,23 @@ class MapController: UIViewController{
         switch locationManager.authorizationStatus {
         
         case .notDetermined:
-            let controller = LocationRequestController()
-            controller.modalPresentationStyle = .fullScreen
-            present(controller, animated: true, completion: nil)
-        case .restricted:
-            break
-        case .denied:
-            break
-        case .authorizedAlways:
-            break
-        case .authorizedWhenInUse:
-            break
-        @unknown default:
+            presentLocationRequestController()
+        default:
             break
         }
     }
     
-}
-
-extension MapController: CLLocationManagerDelegate {
+    private func presentLocationRequestController(){
+        let controller = LocationRequestController()
+        controller.locationManager = self.locationManager
+        controller.modalPresentationStyle = .fullScreen
+        present(controller, animated: true, completion: nil)
+    }
+    
+    private func centerMapOnUserLocation(){
+        guard let coordinates = locationManager.location?.coordinate else { return }
+        let coordinateRegion = MKCoordinateRegion(center: coordinates, latitudinalMeters: 2000, longitudinalMeters: 2000)
+        mapView.setRegion(coordinateRegion, animated: true)
+    }
     
 }

@@ -6,9 +6,12 @@
 //
 
 import UIKit
+import CoreLocation
 
 class LocationRequestController:UIViewController {
     // MARK: - Properties
+    var locationManager: CLLocationManager?
+    
     let mapPinImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFit
@@ -40,13 +43,15 @@ class LocationRequestController:UIViewController {
     // MARK: - Lifecycles
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         setupUI()
+        
     }
     
     // MARK: - Selectors
     @objc private func enableLocationHandler(){
-        print("DEBUG: enable location")
+        guard let locationManager = locationManager else { return }
+        locationManager.delegate = self
+        locationManager.requestWhenInUseAuthorization()
     }
     
     // MARK: - Helpers
@@ -71,5 +76,15 @@ class LocationRequestController:UIViewController {
         view.addSubview(mapPinImageView)
         mapPinImageView.anchor(top:view.topAnchor, paddingTop: 140, width: 200, height: 200)
         mapPinImageView.centerX(inView: view)
+    }
+}
+
+extension LocationRequestController: CLLocationManagerDelegate {
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        guard let _ = locationManager?.location else {
+            print("DEBUG: Error setting location")
+            return
+        }
+        dismiss(animated: true, completion: nil)
     }
 }
