@@ -27,8 +27,6 @@ struct SearchInputViewModel {
     mutating func updateState(direction: UISwipeGestureRecognizer.Direction) -> CGFloat?{
         guard let heightAdjustment = self.heightAdjustment else {return nil}
         
-      
-        print("DEBUG: \(originY)")
         switch expansionState {
             case .NotExpanded where direction == .up :
                 self.expansionState = .PartiallyExpanded
@@ -67,7 +65,6 @@ extension SearchInputViewModel {
         
         self.heightAdjustment = HeightAdjustment(medium: viewHeight * 0.27, maximum: viewHeight * 0.50)
         
-        print("DEBUG: \(heightAdjustment)")
         self.originY = originY
     }
 }
