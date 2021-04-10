@@ -11,6 +11,12 @@ import CoreLocation
 
 class MapController: UIViewController, CLLocationManagerDelegate{
     // MARK: - Properties
+    var searchInputView: SearchInputView = {
+        let view = SearchInputView()
+        
+        return view
+    }()
+    
     var mapView: MKMapView = {
         let mapView = MKMapView()
         mapView.showsUserLocation = true
@@ -43,8 +49,18 @@ class MapController: UIViewController, CLLocationManagerDelegate{
     private func setupUI(){
         view.backgroundColor = .green
         
+        setupMapView()
+        setupSearchInputView()
+    }
+    
+    private func setupMapView(){
         view.addSubview(mapView)
         mapView.fillView(view: view)
+    }
+    
+    private func setupSearchInputView(){
+        view.addSubview(searchInputView)
+        searchInputView.anchor(left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor, paddingBottom: -(view.frame.height - 88), height: view.frame.height)
     }
     
     private func enableLocationServices(){

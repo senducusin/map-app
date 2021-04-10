@@ -14,6 +14,9 @@
 		A637708B26213F2A00E42F7E /* MapController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A637708A26213F2A00E42F7E /* MapController.swift */; };
 		A637708F26213FFD00E42F7E /* UIView+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A637708E26213FFD00E42F7E /* UIView+Extensions.swift */; };
 		A6377092262148C700E42F7E /* LocationRequestController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6377091262148C700E42F7E /* LocationRequestController.swift */; };
+		A6377096262172D700E42F7E /* SearchInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6377095262172D700E42F7E /* SearchInputView.swift */; };
+		A637709A262178AB00E42F7E /* SearchCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6377099262178AB00E42F7E /* SearchCell.swift */; };
+		A63770A3262187D700E42F7E /* SearchInputViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63770A2262187D700E42F7E /* SearchInputViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +29,9 @@
 		A637708A26213F2A00E42F7E /* MapController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapController.swift; sourceTree = "<group>"; };
 		A637708E26213FFD00E42F7E /* UIView+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Extensions.swift"; sourceTree = "<group>"; };
 		A6377091262148C700E42F7E /* LocationRequestController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationRequestController.swift; sourceTree = "<group>"; };
+		A6377095262172D700E42F7E /* SearchInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchInputView.swift; sourceTree = "<group>"; };
+		A6377099262178AB00E42F7E /* SearchCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchCell.swift; sourceTree = "<group>"; };
+		A63770A2262187D700E42F7E /* SearchInputViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchInputViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +64,8 @@
 		A637706F26213E6C00E42F7E /* Map Kit App */ = {
 			isa = PBXGroup;
 			children = (
+				A637709C262180EF00E42F7E /* View Models */,
+				A6377094262172CA00E42F7E /* Views */,
 				A637708D26213FF100E42F7E /* Extensions */,
 				A637708926213F1D00E42F7E /* Controllers */,
 				A637707026213E6C00E42F7E /* AppDelegate.swift */,
@@ -84,6 +92,23 @@
 				A637708E26213FFD00E42F7E /* UIView+Extensions.swift */,
 			);
 			path = Extensions;
+			sourceTree = "<group>";
+		};
+		A6377094262172CA00E42F7E /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				A6377095262172D700E42F7E /* SearchInputView.swift */,
+				A6377099262178AB00E42F7E /* SearchCell.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		A637709C262180EF00E42F7E /* View Models */ = {
+			isa = PBXGroup;
+			children = (
+				A63770A2262187D700E42F7E /* SearchInputViewModel.swift */,
+			);
+			path = "View Models";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -158,8 +183,11 @@
 				A637707126213E6C00E42F7E /* AppDelegate.swift in Sources */,
 				A637708B26213F2A00E42F7E /* MapController.swift in Sources */,
 				A637708F26213FFD00E42F7E /* UIView+Extensions.swift in Sources */,
+				A637709A262178AB00E42F7E /* SearchCell.swift in Sources */,
 				A637707326213E6C00E42F7E /* SceneDelegate.swift in Sources */,
 				A6377092262148C700E42F7E /* LocationRequestController.swift in Sources */,
+				A6377096262172D700E42F7E /* SearchInputView.swift in Sources */,
+				A63770A3262187D700E42F7E /* SearchInputViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
