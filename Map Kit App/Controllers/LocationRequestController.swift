@@ -59,13 +59,12 @@ class LocationRequestController:UIViewController {
     
     private func setupEnableLocationButton(){
         view.addSubview(enableLocationButton)
-        enableLocationButton.anchor(top: allowLocationLabel.bottomAnchor, paddingTop: 32, width: 160, height: 45)
-        enableLocationButton.centerX(inView: view)
+        enableLocationButton.anchor(top: allowLocationLabel.bottomAnchor, left: view.leftAnchor, right: view.rightAnchor, paddingTop: 32, paddingLeft: 32, paddingRight: 32, width: 160, height: 50)
     }
     
     private func setupAllowLocationLabel(){
         view.addSubview(allowLocationLabel)
-        allowLocationLabel.anchor(top:mapPinImageView.bottomAnchor,left: view.leftAnchor, right: view.rightAnchor, paddingTop: 32, paddingLeft: 15, paddingRight: 15)
+        allowLocationLabel.anchor(top:mapPinImageView.bottomAnchor,left: view.leftAnchor, right: view.rightAnchor, paddingTop: 32, paddingLeft: 32, paddingRight: 32)
     }
     
     private func setupMapPinImageView(){
