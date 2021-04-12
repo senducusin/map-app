@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import MapKit
 
 protocol SearchInputViewDelegate: class {
     func searchInputViewShouldUpdatePosition(searchInputView: SearchInputView, targetPosition:CGFloat, state:ExpansionState)
@@ -17,12 +18,21 @@ class SearchInputView: UIView {
     // MARK: - Properties
     weak var delegate: SearchInputViewDelegate?
     
+    var mapController: MapController?
+    
+    var mapItems = [MKMapItem](){
+        didSet{
+            tableView.reloadData()
+        }
+    }
+    
     private lazy var tableView: UITableView = {
         let tableView = UITableView()
         tableView.rowHeight = 72
         tableView.register(SearchCell.self, forCellReuseIdentifier: SearchCell.cellIdentifier)
         tableView.dataSource = self
         tableView.delegate = self
+        tableView.tableFooterView = UIView()
         return tableView
     }()
     
@@ -45,13 +55,9 @@ class SearchInputView: UIView {
     
     lazy var viewModel = SearchInputViewModel(viewHeight: self.frame.height, originY: self.frame.origin.y)
     
-
-    
     // MARK: - Lifecycles
     override init(frame: CGRect){
         super.init(frame: frame)
-        
-        print("DEBUG:^ \(self.frame.origin.y)")
         
         setupUI()
         setupGestureRecognizers()
@@ -81,7 +87,6 @@ class SearchInputView: UIView {
         setupIndicatorView()
         setupSearchBar()
         setupTableView()
-        
     }
     
     private func cancelSearch(){
@@ -118,13 +123,46 @@ class SearchInputView: UIView {
 
 extension SearchInputView: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 10
+        return mapItems.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: SearchCell.cellIdentifier, for: indexPath) as! SearchCell
         
+        if let controller = mapController{
+            let place = Place(location: controller.locationManager.location, mkMapItem: mapItems[indexPath.row])
+            cell.place = place
+        }
+        
+        if indexPath.row == 0 {
+            cell.animateButtonIn()
+        }
+        
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard indexPath.row > 0 else {return}
+        
+        let selectedMapItem = mapItems[indexPath.row]
+        if viewModel.expansionState == .FullyExpanded {
+            if let targetPosition = viewModel.updateState(withState: .PartiallyExpanded) {
+                delegate?.searchInputViewShouldUpdatePosition(searchInputView: self, targetPosition: targetPosition, state: viewModel.expansionState)
+            }
+        }
+        mapItems.remove(at: indexPath.row)
+        mapItems.insert(selectedMapItem, at: 0)
+        tableView.reloadData()
+        
+        let firstIndexPath = IndexPath(row: 0, section: 0)
+        
+        tableView.scrollToRow(at: firstIndexPath, at: .top, animated: true)
+        
+//        DispatchQueue.main.asyncAfter(deadline: .now()+0.35) {
+//            if let cell = tableView.cellForRow(at: firstIndexPath) as? SearchCell {
+//                cell.animateButtonIn()
+//            }
+//        }
     }
 }
 
@@ -134,8 +172,6 @@ extension SearchInputView: UISearchBarDelegate{
             delegate?.searchInputViewShouldUpdatePosition(searchInputView: self, targetPosition: targetPosition, state: viewModel.expansionState)
             searchBar.showsCancelButton = true
         }
-        
-       
     }
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
@@ -148,6 +184,13 @@ extension SearchInputView: UISearchBarDelegate{
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         guard let searchText = searchBar.text,
               !searchText.isEmpty else {return}
+        
         delegate?.searchInputViewShouldStartSearch(withSearchText: searchText)
+        
+        cancelSearch()
+        
+        if let targetPosition = viewModel.updateState(withState: .PartiallyExpanded) {
+            delegate?.searchInputViewShouldUpdatePosition(searchInputView: self, targetPosition: targetPosition, state: viewModel.expansionState)
+        }
     }
 }

@@ -7,13 +7,13 @@
 
 import UIKit
 import MapKit
-import CoreLocation
 
 class MapController: UIViewController, CLLocationManagerDelegate{
     // MARK: - Properties
     private lazy var searchInputView: SearchInputView = {
         let view = SearchInputView()
         view.delegate = self
+        view.mapController = self
         return view
     }()
     
@@ -45,7 +45,7 @@ class MapController: UIViewController, CLLocationManagerDelegate{
         return button
     }()
     
-    var constraintsBottom: NSLayoutConstraint?
+    var searchInputViewBottomConstraint: NSLayoutConstraint?
     
     // MARK: - Lifecycles
     override func viewDidLoad() {
@@ -58,6 +58,7 @@ class MapController: UIViewController, CLLocationManagerDelegate{
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         centerMapOnUserLocation()
+        loadAnnotationResult(withQuery: "Restaurants")
     }
     
     // MARK: - Selectors
@@ -95,21 +96,17 @@ class MapController: UIViewController, CLLocationManagerDelegate{
         searchInputView.centerX(inView: view)
         
         searchInputView.anchor(left: view.leftAnchor, right: view.rightAnchor, height: view.frame.height)
-            
-        constraintsBottom = searchInputView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: view.frame.height - 88)
-        constraintsBottom?.isActive = true
+        
+        searchInputViewBottomConstraint = searchInputView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: view.frame.height - 88)
+        searchInputViewBottomConstraint?.isActive = true
         
     }
     
     private func enableLocationServices(){
-        switch locationManager.authorizationStatus {
-        
-        case .notDetermined:
+        if locationManager.authorizationStatus == .notDetermined {
             DispatchQueue.main.async {
                 self.presentLocationRequestController()
             }
-        default:
-            break
         }
     }
     
@@ -122,16 +119,16 @@ class MapController: UIViewController, CLLocationManagerDelegate{
     
     private func centerMapOnUserLocation(){
         guard let coordinates = locationManager.location?.coordinate else { return }
-        let coordinateRegion = MKCoordinateRegion(center: coordinates, latitudinalMeters: 2000, longitudinalMeters: 2000)
+        let coordinateRegion = MKCoordinateRegion(center: coordinates, latitudinalMeters: 10000, longitudinalMeters: 10000)
         mapView.setRegion(coordinateRegion, animated: true)
     }
     
     private func animateInputView(targetPosition: CGFloat){
-        constraintsBottom?.isActive = false
-        constraintsBottom = searchInputView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: targetPosition)
+        searchInputViewBottomConstraint?.isActive = false
+        searchInputViewBottomConstraint = searchInputView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: targetPosition)
         
         UIView.animate(withDuration: 0.5,delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: .curveEaseInOut, animations: {
-            self.constraintsBottom?.isActive = true
+            self.searchInputViewBottomConstraint?.isActive = true
             self.view.layoutIfNeeded()
         })
     }
@@ -154,26 +151,42 @@ class MapController: UIViewController, CLLocationManagerDelegate{
             completion(response,nil)
         }
     }
+    
+    func clearAnnotations(){
+        mapView.removeAnnotations(mapView.annotations)
+    }
+    
+    func loadAnnotationResult(withQuery query:String){
+        guard let coordinate = locationManager.location?.coordinate else {return}
+        
+        let region = MKCoordinateRegion(center: coordinate, latitudinalMeters: 2000, longitudinalMeters: 2000)
+        searchBy(naturalLanguageQuery: query, region: region, coordinates: coordinate) { [weak self] response, error in
+            
+            
+            if let mapItems = response?.mapItems {
+                
+                mapItems.forEach({ mapItem in
+                    let annotation = MKPointAnnotation()
+                    annotation.title = mapItem.name
+                    annotation.coordinate = mapItem.placemark.coordinate
+                    self?.mapView.addAnnotation(annotation)
+                })
+                
+                self?.searchInputView.mapItems = mapItems
+            }
+        }
+    }
 }
 
+// MARK: - SearchInputView Delegate
 extension MapController: SearchInputViewDelegate {
     func searchInputViewShouldStartSearch(withSearchText searchText: String) {
-        guard let coordinate = locationManager.location?.coordinate else {return}
-        let region = MKCoordinateRegion(center: coordinate, latitudinalMeters: 2000, longitudinalMeters: 2000)
-        
-        searchBy(naturalLanguageQuery: searchText, region: region, coordinates: coordinate) { response, error in
-            response?.mapItems.forEach({ mapItem in
-                print("DEBUG: \(mapItem.name)")
-            })
-        }
+        clearAnnotations()
+        loadAnnotationResult(withQuery: searchText)
     }
     
     func searchInputViewShouldUpdatePosition(searchInputView: SearchInputView, targetPosition: CGFloat, state: ExpansionState) {
         animateInputView(targetPosition: targetPosition)
-        if state == .FullyExpanded {
-            centerMapButton.isHidden = true
-        }else{
-            centerMapButton.isHidden = false
-        }
+        centerMapButton.isHidden = state == .FullyExpanded ? true : false
     }
 }

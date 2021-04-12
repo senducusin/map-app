@@ -46,6 +46,11 @@ extension UIView {
         }
     }
     
+    func center(inView view: UIView) {
+        self.centerX(inView: view)
+        self.centerY(inView: view)
+    }
+    
     func centerX(inView view: UIView) {
         translatesAutoresizingMaskIntoConstraints = false
         centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true

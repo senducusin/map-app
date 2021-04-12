@@ -69,6 +69,10 @@ struct SearchInputViewModel {
         
         case .Collapsed:
             return heightAdjustment.collapsed
+        
+        case .PartiallyExpanded:
+            return heightAdjustment.partiallyExpanded
+            
         default:break
         }
         
