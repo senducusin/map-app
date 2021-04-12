@@ -62,6 +62,7 @@ class MapController: UIViewController, CLLocationManagerDelegate{
     
     // MARK: - Selectors
     @objc private func centerMapButtonHandler(){
+        centerMapOnUserLocation()
     }
     
     // MARK: - Helpers
@@ -92,13 +93,11 @@ class MapController: UIViewController, CLLocationManagerDelegate{
     private func setupSearchInputView(){
         view.addSubview(searchInputView)
         searchInputView.centerX(inView: view)
-       
         
         searchInputView.anchor(left: view.leftAnchor, right: view.rightAnchor, height: view.frame.height)
-//
+            
         constraintsBottom = searchInputView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: view.frame.height - 88)
         constraintsBottom?.isActive = true
-        
         
     }
     
@@ -137,12 +136,44 @@ class MapController: UIViewController, CLLocationManagerDelegate{
         })
     }
     
+    func searchBy(naturalLanguageQuery: String, region: MKCoordinateRegion, coordinates: CLLocationCoordinate2D, completion:@escaping(_ response: MKLocalSearch.Response?, _ error: NSError?)->()){
+        
+        let request = MKLocalSearch.Request()
+        request.naturalLanguageQuery = naturalLanguageQuery
+        request.region = region
+        
+        let search = MKLocalSearch(request: request)
+        search.start { response, error in
+            guard let response = response else {
+                if let error = error as NSError? {
+                    completion(nil,error)
+                }
+                return
+            }
+            
+            completion(response,nil)
+        }
+    }
 }
 
 extension MapController: SearchInputViewDelegate {
-    func searchInputViewShouldUpdatePosition(searchInputView: SearchInputView, targetPosition: CGFloat) {
-        animateInputView(targetPosition: targetPosition)
+    func searchInputViewShouldStartSearch(withSearchText searchText: String) {
+        guard let coordinate = locationManager.location?.coordinate else {return}
+        let region = MKCoordinateRegion(center: coordinate, latitudinalMeters: 2000, longitudinalMeters: 2000)
+        
+        searchBy(naturalLanguageQuery: searchText, region: region, coordinates: coordinate) { response, error in
+            response?.mapItems.forEach({ mapItem in
+                print("DEBUG: \(mapItem.name)")
+            })
+        }
     }
     
-    
+    func searchInputViewShouldUpdatePosition(searchInputView: SearchInputView, targetPosition: CGFloat, state: ExpansionState) {
+        animateInputView(targetPosition: targetPosition)
+        if state == .FullyExpanded {
+            centerMapButton.isHidden = true
+        }else{
+            centerMapButton.isHidden = false
+        }
+    }
 }

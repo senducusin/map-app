@@ -8,7 +8,9 @@
 import UIKit
 
 protocol SearchInputViewDelegate: class {
-    func searchInputViewShouldUpdatePosition(searchInputView: SearchInputView, targetPosition:CGFloat)
+    func searchInputViewShouldUpdatePosition(searchInputView: SearchInputView, targetPosition:CGFloat, state:ExpansionState)
+    
+    func searchInputViewShouldStartSearch(withSearchText searchText:String)
 }
 
 class SearchInputView: UIView {
@@ -64,7 +66,7 @@ class SearchInputView: UIView {
         
         if let targetPosition = viewModel.updateState(withGesture: sender.direction) {
             
-            delegate?.searchInputViewShouldUpdatePosition(searchInputView: self, targetPosition: targetPosition)
+            delegate?.searchInputViewShouldUpdatePosition(searchInputView: self, targetPosition: targetPosition, state: viewModel.expansionState)
             
             if viewModel.expansionState == .Collapsed {
                 cancelSearch()
@@ -129,7 +131,7 @@ extension SearchInputView: UITableViewDelegate, UITableViewDataSource {
 extension SearchInputView: UISearchBarDelegate{
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
         if let targetPosition = viewModel.updateState(withState: .ExpandToSearch){
-            delegate?.searchInputViewShouldUpdatePosition(searchInputView: self, targetPosition: targetPosition)
+            delegate?.searchInputViewShouldUpdatePosition(searchInputView: self, targetPosition: targetPosition, state: viewModel.expansionState)
             searchBar.showsCancelButton = true
         }
         
@@ -138,8 +140,14 @@ extension SearchInputView: UISearchBarDelegate{
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
         if let targetPosition = viewModel.updateState(withState: .Collapsed){
-            delegate?.searchInputViewShouldUpdatePosition(searchInputView: self, targetPosition: targetPosition)
+            delegate?.searchInputViewShouldUpdatePosition(searchInputView: self, targetPosition: targetPosition, state: viewModel.expansionState)
             cancelSearch()
         }
+    }
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        guard let searchText = searchBar.text,
+              !searchText.isEmpty else {return}
+        delegate?.searchInputViewShouldStartSearch(withSearchText: searchText)
     }
 }
