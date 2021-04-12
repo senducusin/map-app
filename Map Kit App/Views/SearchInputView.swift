@@ -52,7 +52,6 @@ class SearchInputView: UIView {
     @objc private func gestureSwipeHandler(sender: UISwipeGestureRecognizer){
         
         if let targetPosition = viewModel.updateState(withGesture: sender.direction) {
-            print("DEBUG: \(targetPosition)")
             animateInputView(targetPosition: targetPosition)
             
             if viewModel.expansionState == .Collapsed {

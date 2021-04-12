@@ -79,7 +79,8 @@ extension SearchInputViewModel {
         self.viewHeight = viewHeight
         
         let mediumExpansion = viewHeight * 0.27
-        let maximumExpansion = (viewHeight * 0.27) + (viewHeight * 0.50)
+        let largeExpansion = viewHeight * 0.50
+        let maximumExpansion = mediumExpansion + largeExpansion
         
         self.expansionHeight = ExpansionHeight(
             collapsed: originY,
