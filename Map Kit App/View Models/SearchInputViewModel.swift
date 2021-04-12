@@ -7,53 +7,68 @@
 
 import UIKit
 
-struct HeightAdjustment {
-    let medium: CGFloat
-    let maximum: CGFloat
+struct ExpansionHeight {
+    let collapsed:CGFloat
+    let partiallyExpanded: CGFloat
+    let fullyExpanded: CGFloat
+}
+
+enum ExpansionState: Int,CaseIterable {
+    case Collapsed, PartiallyExpanded, FullyExpanded, ExpandToSearch
 }
 
 struct SearchInputViewModel {
-    enum ExpansionState: Int,CaseIterable {
-        case NotExpanded, PartiallyExpanded, FullyExpanded, ExpandToSearch
-    }
     
     let viewHeight: CGFloat
-    var originY: CGFloat
     
-    var heightAdjustment: HeightAdjustment?
+    var expansionHeight: ExpansionHeight?
     
-    private(set) var expansionState: ExpansionState = .NotExpanded
+    private(set) var expansionState: ExpansionState = .Collapsed
     
-    mutating func updateState(direction: UISwipeGestureRecognizer.Direction) -> CGFloat?{
-        guard let heightAdjustment = self.heightAdjustment else {return nil}
+    mutating func updateState(withGesture direction: UISwipeGestureRecognizer.Direction) -> CGFloat?{
+        guard let heightAdjustment = self.expansionHeight else {return nil}
         
         switch expansionState {
-            case .NotExpanded where direction == .up :
-                self.expansionState = .PartiallyExpanded
-                originY = originY - heightAdjustment.medium
-                return originY
-        
-            case .PartiallyExpanded where direction == .up:
-                self.expansionState = .FullyExpanded
-                originY = originY - heightAdjustment.maximum
-                return originY
-        
-            case .PartiallyExpanded where direction == .down:
-                self.expansionState = .NotExpanded
-                originY = originY + heightAdjustment.medium
-                return originY
-                
-            case .FullyExpanded where direction == .down:
-                self.expansionState = .PartiallyExpanded
-                originY = originY + heightAdjustment.maximum
-                return originY
-                
-            case .ExpandToSearch:
-                break
-                
-            default:break
+        case .Collapsed where direction == .up :
+            expansionState = .PartiallyExpanded
+            return heightAdjustment.partiallyExpanded
+            
+        case .PartiallyExpanded where direction == .up:
+            expansionState = .FullyExpanded
+            return heightAdjustment.fullyExpanded
+            
+        case .PartiallyExpanded where direction == .down:
+            expansionState = .Collapsed
+            return heightAdjustment.collapsed
+            
+        case .FullyExpanded where direction == .down:
+            expansionState = .PartiallyExpanded
+            return heightAdjustment.partiallyExpanded
+            
+        case .ExpandToSearch where direction == .down:
+            expansionState = .Collapsed
+            return heightAdjustment.collapsed
+            
+        default:break
         }
         
+        
+        return nil
+    }
+    
+    mutating func updateState(withState state:ExpansionState) -> CGFloat? {
+        guard let heightAdjustment = self.expansionHeight else {return nil}
+        
+        expansionState = (state == .ExpandToSearch) ? .FullyExpanded : state
+        
+        switch state {
+        case .ExpandToSearch:
+            return heightAdjustment.fullyExpanded
+        
+        case .Collapsed:
+            return heightAdjustment.collapsed
+        default:break
+        }
         
         return nil
     }
@@ -63,8 +78,13 @@ extension SearchInputViewModel {
     init(viewHeight:CGFloat, originY:CGFloat){
         self.viewHeight = viewHeight
         
-        self.heightAdjustment = HeightAdjustment(medium: viewHeight * 0.27, maximum: viewHeight * 0.50)
+        let mediumExpansion = viewHeight * 0.27
+        let maximumExpansion = (viewHeight * 0.27) + (viewHeight * 0.50)
         
-        self.originY = originY
+        self.expansionHeight = ExpansionHeight(
+            collapsed: originY,
+            partiallyExpanded: originY - mediumExpansion,
+            fullyExpanded: originY - maximumExpansion
+        )
     }
 }

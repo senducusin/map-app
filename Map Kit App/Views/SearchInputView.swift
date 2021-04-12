@@ -26,11 +26,12 @@ class SearchInputView: UIView {
         return view
     }()
     
-    private let searchBar: UISearchBar = {
+    lazy var searchBar: UISearchBar = {
         let searchBar = UISearchBar()
         searchBar.placeholder = "Search for a place or address"
         searchBar.barStyle = .default
         searchBar.setBackgroundImage(UIImage(), for: .any, barMetrics: .default)
+        searchBar.delegate = self
         return searchBar
     }()
     
@@ -41,7 +42,6 @@ class SearchInputView: UIView {
         super.init(frame: frame)
         setupUI()
         setupGestureRecognizers()
-//        expansionState = .NotExpanded
     }
     
     required init?(coder: NSCoder) {
@@ -51,8 +51,13 @@ class SearchInputView: UIView {
     // MARK: - Selectors
     @objc private func gestureSwipeHandler(sender: UISwipeGestureRecognizer){
         
-        if let targetPosition = viewModel.updateState(direction: sender.direction) {
+        if let targetPosition = viewModel.updateState(withGesture: sender.direction) {
+            print("DEBUG: \(targetPosition)")
             animateInputView(targetPosition: targetPosition)
+            
+            if viewModel.expansionState == .Collapsed {
+                cancelSearch()
+            }
         }
     }
     
@@ -70,6 +75,11 @@ class SearchInputView: UIView {
         setupSearchBar()
         setupTableView()
         
+    }
+    
+    private func cancelSearch(){
+        searchBar.showsCancelButton = false
+        searchBar.resignFirstResponder()
     }
     
     private func setupGestureRecognizers(){
@@ -109,6 +119,20 @@ extension SearchInputView: UITableViewDelegate, UITableViewDataSource {
         
         return cell
     }
+}
+
+extension SearchInputView: UISearchBarDelegate{
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+        if let targetPosition = viewModel.updateState(withState: .ExpandToSearch){
+            animateInputView(targetPosition: targetPosition)
+            searchBar.showsCancelButton = true
+        }
+    }
     
-    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        if let targetPosition = viewModel.updateState(withState: .Collapsed){
+            animateInputView(targetPosition: targetPosition)
+            cancelSearch()
+        }
+    }
 }
