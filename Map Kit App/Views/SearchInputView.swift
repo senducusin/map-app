@@ -7,8 +7,14 @@
 
 import UIKit
 
+protocol SearchInputViewDelegate: class {
+    func searchInputViewShouldUpdatePosition(searchInputView: SearchInputView, targetPosition:CGFloat)
+}
+
 class SearchInputView: UIView {
     // MARK: - Properties
+    weak var delegate: SearchInputViewDelegate?
+    
     private lazy var tableView: UITableView = {
         let tableView = UITableView()
         tableView.rowHeight = 72
@@ -37,9 +43,14 @@ class SearchInputView: UIView {
     
     lazy var viewModel = SearchInputViewModel(viewHeight: self.frame.height, originY: self.frame.origin.y)
     
+
+    
     // MARK: - Lifecycles
     override init(frame: CGRect){
         super.init(frame: frame)
+        
+        print("DEBUG:^ \(self.frame.origin.y)")
+        
         setupUI()
         setupGestureRecognizers()
     }
@@ -52,7 +63,8 @@ class SearchInputView: UIView {
     @objc private func gestureSwipeHandler(sender: UISwipeGestureRecognizer){
         
         if let targetPosition = viewModel.updateState(withGesture: sender.direction) {
-            animateInputView(targetPosition: targetPosition)
+            
+            delegate?.searchInputViewShouldUpdatePosition(searchInputView: self, targetPosition: targetPosition)
             
             if viewModel.expansionState == .Collapsed {
                 cancelSearch()
@@ -61,12 +73,6 @@ class SearchInputView: UIView {
     }
     
     // MARK: - Helpers
-    private func animateInputView(targetPosition: CGFloat){
-        UIView.animate(withDuration: 0.5,delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: .curveEaseInOut, animations: {
-            self.frame.origin.y = targetPosition
-        })
-    }
-    
     private func setupUI(){
         backgroundColor = .white
         
@@ -123,14 +129,16 @@ extension SearchInputView: UITableViewDelegate, UITableViewDataSource {
 extension SearchInputView: UISearchBarDelegate{
     func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
         if let targetPosition = viewModel.updateState(withState: .ExpandToSearch){
-            animateInputView(targetPosition: targetPosition)
+            delegate?.searchInputViewShouldUpdatePosition(searchInputView: self, targetPosition: targetPosition)
             searchBar.showsCancelButton = true
         }
+        
+       
     }
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
         if let targetPosition = viewModel.updateState(withState: .Collapsed){
-            animateInputView(targetPosition: targetPosition)
+            delegate?.searchInputViewShouldUpdatePosition(searchInputView: self, targetPosition: targetPosition)
             cancelSearch()
         }
     }

@@ -13,9 +13,11 @@ struct ExpansionHeight {
     let fullyExpanded: CGFloat
 }
 
-enum ExpansionState: Int,CaseIterable {
+enum ExpansionState{
     case Collapsed, PartiallyExpanded, FullyExpanded, ExpandToSearch
 }
+
+typealias SwipeGestureDirection = UISwipeGestureRecognizer.Direction
 
 struct SearchInputViewModel {
     
@@ -25,7 +27,7 @@ struct SearchInputViewModel {
     
     private(set) var expansionState: ExpansionState = .Collapsed
     
-    mutating func updateState(withGesture direction: UISwipeGestureRecognizer.Direction) -> CGFloat?{
+    mutating func updateState(withGesture direction: SwipeGestureDirection) -> CGFloat?{
         guard let heightAdjustment = self.expansionHeight else {return nil}
         
         switch expansionState {

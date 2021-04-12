@@ -11,13 +11,13 @@ import CoreLocation
 
 class MapController: UIViewController, CLLocationManagerDelegate{
     // MARK: - Properties
-    var searchInputView: SearchInputView = {
+    private lazy var searchInputView: SearchInputView = {
         let view = SearchInputView()
-        
+        view.delegate = self
         return view
     }()
     
-    var mapView: MKMapView = {
+    private let mapView: MKMapView = {
         let mapView = MKMapView()
         mapView.showsUserLocation = true
         mapView.userTrackingMode = .follow
@@ -31,6 +31,22 @@ class MapController: UIViewController, CLLocationManagerDelegate{
         return locationManager
     }()
     
+    private var centerMapButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(systemName: "location"), for: .normal)
+        button.addTarget(self, action: #selector(centerMapButtonHandler), for: .touchUpInside)
+        button.backgroundColor = .white
+        button.layer.cornerRadius = 25
+        
+        button.layer.shadowOpacity = 0.2
+        button.layer.shadowRadius = 3
+        button.layer.shadowOffset = .init(width:0, height:4)
+        button.layer.shadowColor = UIColor.black.cgColor
+        return button
+    }()
+    
+    var constraintsBottom: NSLayoutConstraint?
+    
     // MARK: - Lifecycles
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -41,8 +57,11 @@ class MapController: UIViewController, CLLocationManagerDelegate{
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
         centerMapOnUserLocation()
+    }
+    
+    // MARK: - Selectors
+    @objc private func centerMapButtonHandler(){
     }
     
     // MARK: - Helpers
@@ -51,6 +70,18 @@ class MapController: UIViewController, CLLocationManagerDelegate{
         
         setupMapView()
         setupSearchInputView()
+        setupCenterMapButton()
+    }
+    
+    private func setupCenterMapButton(){
+        view.addSubview(centerMapButton)
+        centerMapButton.anchor(
+            top: view.safeAreaLayoutGuide.topAnchor,
+            right: view.safeAreaLayoutGuide.rightAnchor,
+            paddingTop: 10,
+            paddingRight: 15,
+            width: 50,
+            height: 50)
     }
     
     private func setupMapView(){
@@ -60,14 +91,24 @@ class MapController: UIViewController, CLLocationManagerDelegate{
     
     private func setupSearchInputView(){
         view.addSubview(searchInputView)
-        searchInputView.anchor(left: view.leftAnchor, bottom: view.bottomAnchor, right: view.rightAnchor, paddingBottom: -(view.frame.height - 88), height: view.frame.height)
+        searchInputView.centerX(inView: view)
+       
+        
+        searchInputView.anchor(left: view.leftAnchor, right: view.rightAnchor, height: view.frame.height)
+//
+        constraintsBottom = searchInputView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: view.frame.height - 88)
+        constraintsBottom?.isActive = true
+        
+        
     }
     
     private func enableLocationServices(){
         switch locationManager.authorizationStatus {
         
         case .notDetermined:
-            presentLocationRequestController()
+            DispatchQueue.main.async {
+                self.presentLocationRequestController()
+            }
         default:
             break
         }
@@ -85,5 +126,23 @@ class MapController: UIViewController, CLLocationManagerDelegate{
         let coordinateRegion = MKCoordinateRegion(center: coordinates, latitudinalMeters: 2000, longitudinalMeters: 2000)
         mapView.setRegion(coordinateRegion, animated: true)
     }
+    
+    private func animateInputView(targetPosition: CGFloat){
+        constraintsBottom?.isActive = false
+        constraintsBottom = searchInputView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: targetPosition)
+        
+        UIView.animate(withDuration: 0.5,delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: .curveEaseInOut, animations: {
+            self.constraintsBottom?.isActive = true
+            self.view.layoutIfNeeded()
+        })
+    }
+    
+}
+
+extension MapController: SearchInputViewDelegate {
+    func searchInputViewShouldUpdatePosition(searchInputView: SearchInputView, targetPosition: CGFloat) {
+        animateInputView(targetPosition: targetPosition)
+    }
+    
     
 }
