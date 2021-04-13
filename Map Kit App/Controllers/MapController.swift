@@ -17,10 +17,11 @@ class MapController: UIViewController, CLLocationManagerDelegate{
         return view
     }()
     
-    private let mapView: MKMapView = {
+    private lazy var mapView: MKMapView = {
         let mapView = MKMapView()
         mapView.showsUserLocation = true
         mapView.userTrackingMode = .follow
+        mapView.delegate = self
         return mapView
     }()
     
@@ -34,6 +35,7 @@ class MapController: UIViewController, CLLocationManagerDelegate{
     private var centerMapButton: UIButton = {
         let button = UIButton(type: .system)
         button.setImage(UIImage(systemName: "location"), for: .normal)
+        button.image(for: .normal)
         button.addTarget(self, action: #selector(centerMapButtonHandler), for: .touchUpInside)
         button.backgroundColor = .white
         button.layer.cornerRadius = 25
@@ -45,6 +47,24 @@ class MapController: UIViewController, CLLocationManagerDelegate{
         return button
     }()
     
+    private var removeOverlayButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(systemName: "xmark"), for: .normal)
+//        button.image(for: .normal)?.withTintColor(.systemRed, renderingMode: .alwaysOriginal)
+        button.addTarget(self, action: #selector(removeOverlayHandler), for: .touchUpInside)
+        button.backgroundColor = .white
+        button.layer.cornerRadius = 25
+        button.alpha = 0
+        
+        button.layer.shadowOpacity = 0.2
+        button.layer.shadowRadius = 3
+        button.layer.shadowOffset = .init(width:0, height:4)
+        button.layer.shadowColor = UIColor.black.cgColor
+        return button
+    }()
+    
+    var route: MKRoute?
+    var selectedAnnotation: MKAnnotation?
     var searchInputViewBottomConstraint: NSLayoutConstraint?
     
     // MARK: - Lifecycles
@@ -66,19 +86,49 @@ class MapController: UIViewController, CLLocationManagerDelegate{
         centerMapOnUserLocation()
     }
     
+    @objc private func removeOverlayHandler(){
+        guard let _ = self.selectedAnnotation else {return}
+        
+        shouldShowRemoveOverlayButton(false)
+        removeOverlay()
+        centerMapOnUserLocation()
+    }
+    
     // MARK: - Helpers
+    private func removeOverlay(){
+        guard let selectedAnnotation = self.selectedAnnotation else {return}
+        
+        if mapView.overlays.count > 0 {
+            self.mapView.removeOverlay((mapView.overlays[0]))
+        }
+        
+        mapView.deselectAnnotation(selectedAnnotation, animated: true)
+    }
+    
     private func setupUI(){
         view.backgroundColor = .green
         
         setupMapView()
         setupSearchInputView()
         setupCenterMapButton()
+        setupRemoveOverlayButton()
     }
     
     private func setupCenterMapButton(){
         view.addSubview(centerMapButton)
         centerMapButton.anchor(
             top: view.safeAreaLayoutGuide.topAnchor,
+            right: view.safeAreaLayoutGuide.rightAnchor,
+            paddingTop: 10,
+            paddingRight: 15,
+            width: 50,
+            height: 50)
+    }
+    
+    private func setupRemoveOverlayButton(){
+        view.addSubview(removeOverlayButton)
+        removeOverlayButton.anchor(
+            top: centerMapButton.bottomAnchor,
             right: view.safeAreaLayoutGuide.rightAnchor,
             paddingTop: 10,
             paddingRight: 15,
@@ -102,25 +152,11 @@ class MapController: UIViewController, CLLocationManagerDelegate{
         
     }
     
-    private func enableLocationServices(){
-        if locationManager.authorizationStatus == .notDetermined {
-            DispatchQueue.main.async {
-                self.presentLocationRequestController()
-            }
-        }
-    }
-    
     private func presentLocationRequestController(){
         let controller = LocationRequestController()
         controller.locationManager = self.locationManager
         controller.modalPresentationStyle = .fullScreen
         present(controller, animated: true, completion: nil)
-    }
-    
-    private func centerMapOnUserLocation(){
-        guard let coordinates = locationManager.location?.coordinate else { return }
-        let coordinateRegion = MKCoordinateRegion(center: coordinates, latitudinalMeters: 10000, longitudinalMeters: 10000)
-        mapView.setRegion(coordinateRegion, animated: true)
     }
     
     private func animateInputView(targetPosition: CGFloat){
@@ -152,6 +188,93 @@ class MapController: UIViewController, CLLocationManagerDelegate{
         }
     }
     
+    // MARK: - Map Helpers
+    private func zoomToFit(selectedAnnotation: MKAnnotation?){
+        guard mapView.annotations.count > 0,
+              let selectedAnnotation = selectedAnnotation else {return}
+        
+        var topLeftCoordinate = CLLocationCoordinate2D(latitude: -90, longitude: 180)
+        var bottomRightCoordinate = CLLocationCoordinate2D(latitude: 90, longitude: -180)
+        
+        for annotation in mapView.annotations {
+            if let userAnnotation = annotation as? MKUserLocation {
+                topLeftCoordinate.longitude = fmin(topLeftCoordinate.longitude, userAnnotation.coordinate.longitude)
+                
+                topLeftCoordinate.latitude = fmax(topLeftCoordinate.latitude, userAnnotation.coordinate.latitude)
+                
+                bottomRightCoordinate.longitude = fmax(bottomRightCoordinate.longitude, userAnnotation.coordinate.longitude)
+                
+                bottomRightCoordinate.latitude = fmin(bottomRightCoordinate.latitude, userAnnotation.coordinate.latitude)
+            }
+            
+            if annotation.title == selectedAnnotation.title {
+                topLeftCoordinate.longitude = fmin(topLeftCoordinate.longitude, annotation.coordinate.longitude)
+                
+                topLeftCoordinate.latitude = fmax(topLeftCoordinate.latitude, annotation.coordinate.latitude)
+                
+                bottomRightCoordinate.longitude = fmax(bottomRightCoordinate.longitude, annotation.coordinate.longitude)
+                
+                bottomRightCoordinate.latitude = fmin(bottomRightCoordinate.latitude, annotation.coordinate.latitude)
+            }
+        }
+        
+        let center = CLLocationCoordinate2DMake(
+            topLeftCoordinate.latitude - (topLeftCoordinate.latitude - bottomRightCoordinate.latitude) * 0.65,
+            topLeftCoordinate.longitude + (bottomRightCoordinate.longitude - topLeftCoordinate.longitude) * 0.65)
+        
+        let span = MKCoordinateSpan(
+            latitudeDelta: fabs(topLeftCoordinate.latitude - bottomRightCoordinate.latitude) * 3.0,
+            longitudeDelta: fabs(bottomRightCoordinate.longitude - topLeftCoordinate.longitude) * 3.0)
+        
+        var region = MKCoordinateRegion(center:center, span: span)
+        
+        region = mapView.regionThatFits(region)
+        mapView.setRegion(region, animated: true)
+    }
+    
+    
+    
+    private func drawPolyline(forDestinationMapItem destinationMapItem: MKMapItem){
+        let request = MKDirections.Request()
+        request.source = MKMapItem.forCurrentLocation()
+        request.destination = destinationMapItem
+        request.transportType = .walking
+        
+        let directions = MKDirections(request: request)
+        directions.calculate { [weak self] response, error in
+            guard let response = response,
+                  error == nil else {return}
+            
+            self?.route = response.routes[0] // first index is usually the fastest
+            self?.shouldShowRemoveOverlayButton(true)
+            
+            guard let route = self?.route else {return}
+            
+            let polyline = route.polyline
+            self?.mapView.addOverlay(polyline)
+        }
+    }
+    
+    private func shouldShowRemoveOverlayButton(_ show: Bool){
+        UIView.animate(withDuration: 0.5) {
+            self.removeOverlayButton.alpha = show ? 1 : 0
+        }
+    }
+    
+    private func enableLocationServices(){
+        if locationManager.authorizationStatus == .notDetermined {
+            DispatchQueue.main.async {
+                self.presentLocationRequestController()
+            }
+        }
+    }
+    
+    private func centerMapOnUserLocation(){
+        guard let coordinates = locationManager.location?.coordinate else { return }
+        let coordinateRegion = MKCoordinateRegion(center: coordinates, latitudinalMeters: 10000, longitudinalMeters: 10000)
+        mapView.setRegion(coordinateRegion, animated: true)
+    }
+    
     func clearAnnotations(){
         mapView.removeAnnotations(mapView.annotations)
     }
@@ -180,6 +303,22 @@ class MapController: UIViewController, CLLocationManagerDelegate{
 
 // MARK: - SearchInputView Delegate
 extension MapController: SearchInputViewDelegate {
+    func selectAnnotation(withMapItem mapItem: MKMapItem) {
+        for annotation in mapView.annotations {
+            if annotation.title == mapItem.name {
+                mapView.selectAnnotation(annotation, animated: true)
+                zoomToFit(selectedAnnotation: annotation)
+                selectedAnnotation = annotation
+                break;
+            }
+        }
+    }
+    
+    func addPolyline(forDestinationMapItem destinationMapItem: MKMapItem) {
+        removeOverlay()
+        drawPolyline(forDestinationMapItem: destinationMapItem)
+    }
+    
     func searchInputViewShouldStartSearch(withSearchText searchText: String) {
         clearAnnotations()
         loadAnnotationResult(withQuery: searchText)
@@ -188,6 +327,7 @@ extension MapController: SearchInputViewDelegate {
     func searchInputViewShouldUpdatePosition(searchInputView: SearchInputView, targetPosition: CGFloat, state: ExpansionState) {
         animateInputView(targetPosition: targetPosition)
         centerMapButton.isHidden = state == .FullyExpanded ? true : false
+        removeOverlayButton.isHidden = state == .FullyExpanded ? true : false
     }
 }
 
@@ -199,6 +339,24 @@ extension MapController: SearchCellDelegate {
     }
     
     func getDirections(forMapItem mapItem: MKMapItem) {
+        let modeWalking = MKLaunchOptionsDirectionsModeWalking
         
+        mapItem.openInMaps(launchOptions: [
+            MKLaunchOptionsDirectionsModeKey: modeWalking
+        ])
+    }
+}
+
+extension MapController: MKMapViewDelegate {
+    func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+        if let route = self.route  {
+            let polyline = route.polyline
+            let lineRenderer = MKPolylineRenderer(overlay: polyline)
+            lineRenderer.strokeColor = .themeBlue
+            lineRenderer.lineWidth = 3
+            return lineRenderer
+        }
+        
+        return MKOverlayRenderer()
     }
 }

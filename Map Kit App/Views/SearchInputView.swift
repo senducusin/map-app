@@ -10,8 +10,9 @@ import MapKit
 
 protocol SearchInputViewDelegate: class {
     func searchInputViewShouldUpdatePosition(searchInputView: SearchInputView, targetPosition:CGFloat, state:ExpansionState)
-    
     func searchInputViewShouldStartSearch(withSearchText searchText:String)
+    func addPolyline(forDestinationMapItem destinationMapItem: MKMapItem)
+    func selectAnnotation(withMapItem mapItem: MKMapItem)
 }
 
 class SearchInputView: UIView {
@@ -35,7 +36,12 @@ class SearchInputView: UIView {
         tableView.register(SearchCell.self, forCellReuseIdentifier: SearchCell.cellIdentifier)
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.tableFooterView = UIView()
+        
+        let footerView = UIView()
+        footerView.setHeight(height: UIScreen.main.bounds.height - 242)
+        
+        tableView.tableFooterView = footerView
+        
         return tableView
     }()
     
@@ -121,6 +127,8 @@ class SearchInputView: UIView {
     private func setupTableView(){
         addSubview(tableView)
         tableView.anchor(top: searchBar.bottomAnchor, left: leftAnchor, bottom: bottomAnchor, right: rightAnchor, paddingTop: 8, paddingBottom: 100)
+        
+  
     }
 }
 
@@ -151,8 +159,9 @@ extension SearchInputView: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
         selectedMapItem = mapItems[indexPath.row]
-        
         guard let selectedMapItem = selectedMapItem else { return }
+        
+        delegate?.selectAnnotation(withMapItem: selectedMapItem)
         
         if viewModel.expansionState == .FullyExpanded {
             if let targetPosition = viewModel.updateState(withState: .PartiallyExpanded) {
@@ -166,6 +175,8 @@ extension SearchInputView: UITableViewDelegate, UITableViewDataSource {
         let firstIndexPath = IndexPath(row: 0, section: 0)
         
         tableView.scrollToRow(at: firstIndexPath, at: .top, animated: true)
+        
+        delegate?.addPolyline(forDestinationMapItem: selectedMapItem)
       
     }
 }

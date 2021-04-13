@@ -84,6 +84,8 @@ extension SearchInputViewModel {
     init(viewHeight:CGFloat, originY:CGFloat){
         self.viewHeight = viewHeight
         
+        print("DEBUG: ^\(viewHeight)")
+        
         let mediumExpansion = viewHeight * 0.27
         let largeExpansion = viewHeight * 0.50
         let maximumExpansion = mediumExpansion + largeExpansion

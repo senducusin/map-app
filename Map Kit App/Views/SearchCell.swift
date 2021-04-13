@@ -24,7 +24,7 @@ class SearchCell: UITableViewCell {
         }
     }
     
-    private var directionsButton: UIButton = {
+    private lazy var directionsButton: UIButton = {
         let button = UIButton(type: .system)
         button.titleLabel?.font = .boldSystemFont(ofSize: 14)
         button.setTitle("Go", for: .normal)
@@ -33,7 +33,6 @@ class SearchCell: UITableViewCell {
         button.addTarget(self, action: #selector(directionButtonHandler), for: .touchUpInside)
         button.layer.cornerRadius = 5
         button.alpha = 0
-        button.isUserInteractionEnabled = true
         
         return button
     }()
@@ -76,6 +75,7 @@ class SearchCell: UITableViewCell {
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?){
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         selectionStyle = .none
+        self.contentView.isUserInteractionEnabled = false
         setupUI()
     }
     
@@ -85,8 +85,11 @@ class SearchCell: UITableViewCell {
     
     // MARK: - Selectors
     @objc private func directionButtonHandler(){
-        print("DEBUG: directions")
+        print("DEBUG: tesst")
+        guard let mapItem = mapItem else {return}
+        delegate?.getDirections(forMapItem: mapItem)
     }
+    
     
     // MARK: - Helpers
     private func setupUI(){
@@ -150,6 +153,4 @@ class SearchCell: UITableViewCell {
         let distanceString = distanceFormatter.string(fromDistance:distanceFromUser)
         locationDistanceLabel.text = distanceString
     }
-    
-    
 }
