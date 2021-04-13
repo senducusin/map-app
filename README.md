@@ -1,29 +1,21 @@
-# README #
+**Map Kit App**
 
-This README would normally document whatever steps are necessary to get your application up and running.
+An app that show landmarks around the user, landmarks can be defined by the user in the search bar.
 
-### What is this repository for? ###
+This app does not use storyboards except for the launch screen.  
+A sample app that demonstrates assigning annotations, defining landmarks/destinations, create polylines to destination and show the user's location.
 
-* Quick summary
-* Version
-* [Learn Markdown](https://bitbucket.org/tutorials/markdowndemo)
+---
 
-### How do I get set up? ###
+## Features
 
-* Summary of set up
-* Configuration
-* Dependencies
-* Database configuration
-* How to run tests
-* Deployment instructions
+- Show the user's location
+- Find a landmark thru the search bar
+- Create a path to the destination landmark by selecting the landmark during search
+- Refering the destination to Maps
 
-### Contribution guidelines ###
+---
 
-* Writing tests
-* Code review
-* Other guidelines
+## Demo
 
-### Who do I talk to? ###
-
-* Repo owner or admin
-* Other community or team contact
+![](/Previews/Preview.gif)
