@@ -23,7 +23,7 @@ struct MapControllerViewModel {
     }
     
     var shouldShowButton: Bool {
-        return searchInputViewState == .FullyExpanded ? false : true
+        return searchInputViewState == .FullyExpanded ? true : false
     }
 }
 

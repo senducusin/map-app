@@ -306,6 +306,7 @@ extension MapController: SearchInputViewDelegate {
     }
     
     func searchInputViewShouldStartSearch(withSearchText searchText: String) {
+        removeOverlayHandler()
         clearAnnotations()
         loadAnnotationResult(withQuery: searchText)
     }
