@@ -83,9 +83,16 @@ class SearchInputView: UIView {
             
             delegate?.searchInputViewShouldUpdatePosition(searchInputView: self, targetPosition: targetPosition, state: viewModel.expansionState)
             
-            if viewModel.expansionState == .Collapsed {
-                cancelSearch()
+            if viewModel.expansionState == .PartiallyExpanded || viewModel.expansionState == .Collapsed {
+                
+                searchBar.resignFirstResponder()
+                
+                if viewModel.expansionState == .Collapsed {
+                    cancelSearch()
+                }
             }
+            
+
         }
     }
     
