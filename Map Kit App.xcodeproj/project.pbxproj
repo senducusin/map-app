@@ -18,6 +18,7 @@
 		A637709A262178AB00E42F7E /* SearchCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6377099262178AB00E42F7E /* SearchCell.swift */; };
 		A63770A3262187D700E42F7E /* SearchInputViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A63770A2262187D700E42F7E /* SearchInputViewModel.swift */; };
 		A6DD1A9326242C21001EF290 /* UIColor+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6DD1A9226242C21001EF290 /* UIColor+Extensions.swift */; };
+		A6FB1C17262567FB005308A4 /* MapControllerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FB1C16262567FB005308A4 /* MapControllerViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +35,7 @@
 		A6377099262178AB00E42F7E /* SearchCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchCell.swift; sourceTree = "<group>"; };
 		A63770A2262187D700E42F7E /* SearchInputViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchInputViewModel.swift; sourceTree = "<group>"; };
 		A6DD1A9226242C21001EF290 /* UIColor+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+Extensions.swift"; sourceTree = "<group>"; };
+		A6FB1C16262567FB005308A4 /* MapControllerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapControllerViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -111,6 +113,7 @@
 			isa = PBXGroup;
 			children = (
 				A63770A2262187D700E42F7E /* SearchInputViewModel.swift */,
+				A6FB1C16262567FB005308A4 /* MapControllerViewModel.swift */,
 			);
 			path = "View Models";
 			sourceTree = "<group>";
@@ -196,6 +199,7 @@
 				A637708F26213FFD00E42F7E /* UIView+Extensions.swift in Sources */,
 				A637709A262178AB00E42F7E /* SearchCell.swift in Sources */,
 				A637707326213E6C00E42F7E /* SceneDelegate.swift in Sources */,
+				A6FB1C17262567FB005308A4 /* MapControllerViewModel.swift in Sources */,
 				A6377092262148C700E42F7E /* LocationRequestController.swift in Sources */,
 				A6377096262172D700E42F7E /* SearchInputView.swift in Sources */,
 				A6DD1A9326242C21001EF290 /* UIColor+Extensions.swift in Sources */,

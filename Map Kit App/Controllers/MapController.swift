@@ -50,7 +50,6 @@ class MapController: UIViewController, CLLocationManagerDelegate{
     private var removeOverlayButton: UIButton = {
         let button = UIButton(type: .system)
         button.setImage(UIImage(systemName: "xmark"), for: .normal)
-//        button.image(for: .normal)?.withTintColor(.systemRed, renderingMode: .alwaysOriginal)
         button.addTarget(self, action: #selector(removeOverlayHandler), for: .touchUpInside)
         button.backgroundColor = .white
         button.layer.cornerRadius = 25
@@ -63,9 +62,7 @@ class MapController: UIViewController, CLLocationManagerDelegate{
         return button
     }()
     
-    var route: MKRoute?
-    var selectedAnnotation: MKAnnotation?
-    var searchInputViewBottomConstraint: NSLayoutConstraint?
+    var viewModel = MapControllerViewModel()
     
     // MARK: - Lifecycles
     override func viewDidLoad() {
@@ -87,7 +84,7 @@ class MapController: UIViewController, CLLocationManagerDelegate{
     }
     
     @objc private func removeOverlayHandler(){
-        guard let _ = self.selectedAnnotation else {return}
+        guard let _ = viewModel.selectedAnnotation else {return}
         
         shouldShowRemoveOverlayButton(false)
         removeOverlay()
@@ -96,7 +93,7 @@ class MapController: UIViewController, CLLocationManagerDelegate{
     
     // MARK: - Helpers
     private func removeOverlay(){
-        guard let selectedAnnotation = self.selectedAnnotation else {return}
+        guard let selectedAnnotation = viewModel.selectedAnnotation else {return}
         
         if mapView.overlays.count > 0 {
             self.mapView.removeOverlay((mapView.overlays[0]))
@@ -147,9 +144,7 @@ class MapController: UIViewController, CLLocationManagerDelegate{
         
         searchInputView.anchor(left: view.leftAnchor, right: view.rightAnchor, height: view.frame.height)
         
-        searchInputViewBottomConstraint = searchInputView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: view.frame.height - 88)
-        searchInputViewBottomConstraint?.isActive = true
-        
+        viewModel.searchInputViewBottomConstraint = searchInputView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: view.frame.height - 88)
     }
     
     private func presentLocationRequestController(){
@@ -160,11 +155,10 @@ class MapController: UIViewController, CLLocationManagerDelegate{
     }
     
     private func animateInputView(targetPosition: CGFloat){
-        searchInputViewBottomConstraint?.isActive = false
-        searchInputViewBottomConstraint = searchInputView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: targetPosition)
+        viewModel.disableSearchViewConstraint()
+        viewModel.searchInputViewBottomConstraint = searchInputView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: targetPosition)
         
         UIView.animate(withDuration: 0.5,delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: .curveEaseInOut, animations: {
-            self.searchInputViewBottomConstraint?.isActive = true
             self.view.layoutIfNeeded()
         })
     }
@@ -198,41 +192,36 @@ class MapController: UIViewController, CLLocationManagerDelegate{
         
         for annotation in mapView.annotations {
             if let userAnnotation = annotation as? MKUserLocation {
-                topLeftCoordinate.longitude = fmin(topLeftCoordinate.longitude, userAnnotation.coordinate.longitude)
+                topLeftCoordinate.longitude = min(topLeftCoordinate.longitude, userAnnotation.coordinate.longitude)
                 
-                topLeftCoordinate.latitude = fmax(topLeftCoordinate.latitude, userAnnotation.coordinate.latitude)
+                topLeftCoordinate.latitude = max(topLeftCoordinate.latitude, userAnnotation.coordinate.latitude)
                 
-                bottomRightCoordinate.longitude = fmax(bottomRightCoordinate.longitude, userAnnotation.coordinate.longitude)
+                bottomRightCoordinate.longitude = max(bottomRightCoordinate.longitude, userAnnotation.coordinate.longitude)
                 
-                bottomRightCoordinate.latitude = fmin(bottomRightCoordinate.latitude, userAnnotation.coordinate.latitude)
+                bottomRightCoordinate.latitude = min(bottomRightCoordinate.latitude, userAnnotation.coordinate.latitude)
+                
             }
             
-            if annotation.title == selectedAnnotation.title {
-                topLeftCoordinate.longitude = fmin(topLeftCoordinate.longitude, annotation.coordinate.longitude)
+            if viewModel.compareAnnotations(annotationA: selectedAnnotation, annotationB: annotation) {
                 
-                topLeftCoordinate.latitude = fmax(topLeftCoordinate.latitude, annotation.coordinate.latitude)
+                topLeftCoordinate.longitude = min(topLeftCoordinate.longitude, selectedAnnotation.coordinate.longitude)
                 
-                bottomRightCoordinate.longitude = fmax(bottomRightCoordinate.longitude, annotation.coordinate.longitude)
+                topLeftCoordinate.latitude = max(topLeftCoordinate.latitude, selectedAnnotation.coordinate.latitude)
                 
-                bottomRightCoordinate.latitude = fmin(bottomRightCoordinate.latitude, annotation.coordinate.latitude)
+                bottomRightCoordinate.longitude = max(bottomRightCoordinate.longitude, selectedAnnotation.coordinate.longitude)
+                
+                bottomRightCoordinate.latitude = min(bottomRightCoordinate.latitude, selectedAnnotation.coordinate.latitude)
+                
             }
         }
         
-        let center = CLLocationCoordinate2DMake(
-            topLeftCoordinate.latitude - (topLeftCoordinate.latitude - bottomRightCoordinate.latitude) * 0.65,
-            topLeftCoordinate.longitude + (bottomRightCoordinate.longitude - topLeftCoordinate.longitude) * 0.65)
-        
-        let span = MKCoordinateSpan(
-            latitudeDelta: fabs(topLeftCoordinate.latitude - bottomRightCoordinate.latitude) * 3.0,
-            longitudeDelta: fabs(bottomRightCoordinate.longitude - topLeftCoordinate.longitude) * 3.0)
-        
-        var region = MKCoordinateRegion(center:center, span: span)
+        var region = viewModel.getZoomRegion(topLeftCoordinate: topLeftCoordinate, bottomRightCoordinate: bottomRightCoordinate)
         
         region = mapView.regionThatFits(region)
         mapView.setRegion(region, animated: true)
     }
     
-    
+
     
     private func drawPolyline(forDestinationMapItem destinationMapItem: MKMapItem){
         let request = MKDirections.Request()
@@ -245,10 +234,10 @@ class MapController: UIViewController, CLLocationManagerDelegate{
             guard let response = response,
                   error == nil else {return}
             
-            self?.route = response.routes[0] // first index is usually the fastest
+            self?.viewModel.route = response.routes[0] // first index is usually the fastest
             self?.shouldShowRemoveOverlayButton(true)
             
-            guard let route = self?.route else {return}
+            guard let route = self?.viewModel.route else {return}
             
             let polyline = route.polyline
             self?.mapView.addOverlay(polyline)
@@ -271,8 +260,7 @@ class MapController: UIViewController, CLLocationManagerDelegate{
     
     private func centerMapOnUserLocation(){
         guard let coordinates = locationManager.location?.coordinate else { return }
-        let coordinateRegion = MKCoordinateRegion(center: coordinates, latitudinalMeters: 10000, longitudinalMeters: 10000)
-        mapView.setRegion(coordinateRegion, animated: true)
+        mapView.setRegion(viewModel.getCenterRegion(withCoordinate: coordinates), animated: true)
     }
     
     func clearAnnotations(){
@@ -281,10 +269,7 @@ class MapController: UIViewController, CLLocationManagerDelegate{
     
     func loadAnnotationResult(withQuery query:String){
         guard let coordinate = locationManager.location?.coordinate else {return}
-        
-        let region = MKCoordinateRegion(center: coordinate, latitudinalMeters: 2000, longitudinalMeters: 2000)
-        searchBy(naturalLanguageQuery: query, region: region, coordinates: coordinate) { [weak self] response, error in
-            
+        searchBy(naturalLanguageQuery: query, region: viewModel.getSearchRegion(withCoordinate: coordinate), coordinates: coordinate) { [weak self] response, error in
             
             if let mapItems = response?.mapItems {
                 
@@ -305,10 +290,11 @@ class MapController: UIViewController, CLLocationManagerDelegate{
 extension MapController: SearchInputViewDelegate {
     func selectAnnotation(withMapItem mapItem: MKMapItem) {
         for annotation in mapView.annotations {
-            if annotation.title == mapItem.name {
+            if viewModel.compareMapItemToAnnotation(mapItem: mapItem, annotation: annotation){
+                
                 mapView.selectAnnotation(annotation, animated: true)
                 zoomToFit(selectedAnnotation: annotation)
-                selectedAnnotation = annotation
+                viewModel.selectedAnnotation = annotation
                 break;
             }
         }
@@ -325,9 +311,11 @@ extension MapController: SearchInputViewDelegate {
     }
     
     func searchInputViewShouldUpdatePosition(searchInputView: SearchInputView, targetPosition: CGFloat, state: ExpansionState) {
+        
+        viewModel.searchInputViewState = state
         animateInputView(targetPosition: targetPosition)
-        centerMapButton.isHidden = state == .FullyExpanded ? true : false
-        removeOverlayButton.isHidden = state == .FullyExpanded ? true : false
+        centerMapButton.isHidden = viewModel.shouldShowButton
+        removeOverlayButton.isHidden = viewModel.shouldShowButton
     }
 }
 
@@ -349,14 +337,6 @@ extension MapController: SearchCellDelegate {
 
 extension MapController: MKMapViewDelegate {
     func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
-        if let route = self.route  {
-            let polyline = route.polyline
-            let lineRenderer = MKPolylineRenderer(overlay: polyline)
-            lineRenderer.strokeColor = .themeBlue
-            lineRenderer.lineWidth = 3
-            return lineRenderer
-        }
-        
-        return MKOverlayRenderer()
+        return viewModel.polylineRenderer()
     }
 }
