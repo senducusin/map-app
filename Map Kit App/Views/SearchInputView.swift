@@ -16,6 +16,9 @@ protocol SearchInputViewDelegate: class {
 
 class SearchInputView: UIView {
     // MARK: - Properties
+    
+    var selectedMapItem: MKMapItem?
+    
     weak var delegate: SearchInputViewDelegate?
     
     var mapController: MapController?
@@ -129,22 +132,28 @@ extension SearchInputView: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: SearchCell.cellIdentifier, for: indexPath) as! SearchCell
         
-        if let controller = mapController{
-            let place = Place(location: controller.locationManager.location, mkMapItem: mapItems[indexPath.row])
-            cell.place = place
-        }
         
-        if indexPath.row == 0 {
-            cell.animateButtonIn()
+        if let controller = mapController{
+            cell.delegate = controller
+            
+            let mapItem = mapItems[indexPath.row]
+            
+            cell.mapItem = mapItem
+            
+            if mapItem == selectedMapItem && indexPath.row == 0 {
+                cell.animateButtonIn()
+            }
         }
         
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard indexPath.row > 0 else {return}
         
-        let selectedMapItem = mapItems[indexPath.row]
+        selectedMapItem = mapItems[indexPath.row]
+        
+        guard let selectedMapItem = selectedMapItem else { return }
+        
         if viewModel.expansionState == .FullyExpanded {
             if let targetPosition = viewModel.updateState(withState: .PartiallyExpanded) {
                 delegate?.searchInputViewShouldUpdatePosition(searchInputView: self, targetPosition: targetPosition, state: viewModel.expansionState)
@@ -157,12 +166,7 @@ extension SearchInputView: UITableViewDelegate, UITableViewDataSource {
         let firstIndexPath = IndexPath(row: 0, section: 0)
         
         tableView.scrollToRow(at: firstIndexPath, at: .top, animated: true)
-        
-//        DispatchQueue.main.asyncAfter(deadline: .now()+0.35) {
-//            if let cell = tableView.cellForRow(at: firstIndexPath) as? SearchCell {
-//                cell.animateButtonIn()
-//            }
-//        }
+      
     }
 }
 

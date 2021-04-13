@@ -190,3 +190,15 @@ extension MapController: SearchInputViewDelegate {
         centerMapButton.isHidden = state == .FullyExpanded ? true : false
     }
 }
+
+// MARK: - SearchCell Delegate
+extension MapController: SearchCellDelegate {
+    func distanceFromUser(location: CLLocation) -> CLLocationDistance? {
+        guard let userLocation = locationManager.location else {return nil}
+        return userLocation.distance(from: location)
+    }
+    
+    func getDirections(forMapItem mapItem: MKMapItem) {
+        
+    }
+}

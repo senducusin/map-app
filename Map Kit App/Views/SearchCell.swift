@@ -9,14 +9,16 @@ import UIKit
 import MapKit
 
 protocol SearchCellDelegate {
+    func distanceFromUser(location: CLLocation) -> CLLocationDistance?
     func getDirections(forMapItem mapItem: MKMapItem)
 }
 
 class SearchCell: UITableViewCell {
     // MARK: - Properties
     static let cellIdentifier = "SearchCell"
+    var delegate: SearchCellDelegate?
     
-    var place: Place? {
+    var mapItem: MKMapItem? {
         didSet{
             configure()
         }
@@ -127,20 +129,27 @@ class SearchCell: UITableViewCell {
     }
     
     private func configure(){
+        guard let mapItem = self.mapItem else {
+            locationTitleLabel.text = "Place Unverified"
+            locationDistanceLabel.text = ""
+            return
+        }
+        
         directionsButton.alpha = 0
-        locationTitleLabel.text = place?.mkMapItem.name
+        locationTitleLabel.text = mapItem.name
         
         let distanceFormatter = MKDistanceFormatter()
         distanceFormatter.unitStyle = .abbreviated
         
-        guard let mapItemLocation = place?.mkMapItem.placemark.location,
-              let mapDistance =  place?.location?.distance(from: mapItemLocation) else {
+        guard let mapItemLocation = mapItem.placemark.location,
+              let distanceFromUser = delegate?.distanceFromUser(location: mapItemLocation) else {
             locationDistanceLabel.text = ""
             return
         }
-
-        let distanceString = distanceFormatter.string(fromDistance:mapDistance)
-        locationDistanceLabel.text = distanceString
         
+        let distanceString = distanceFormatter.string(fromDistance:distanceFromUser)
+        locationDistanceLabel.text = distanceString
     }
+    
+    
 }
