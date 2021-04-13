@@ -8,6 +8,10 @@
 import UIKit
 import MapKit
 
+protocol SearchCellDelegate {
+    func getDirections(forMapItem mapItem: MKMapItem)
+}
+
 class SearchCell: UITableViewCell {
     // MARK: - Properties
     static let cellIdentifier = "SearchCell"
@@ -20,7 +24,7 @@ class SearchCell: UITableViewCell {
     
     private var directionsButton: UIButton = {
         let button = UIButton(type: .system)
-        button.titleLabel?.font = .boldSystemFont(ofSize: 18)
+        button.titleLabel?.font = .boldSystemFont(ofSize: 14)
         button.setTitle("Go", for: .normal)
         button.backgroundColor = .themeGreen
         button.setTitleColor(.white, for: .normal)
@@ -92,7 +96,7 @@ class SearchCell: UITableViewCell {
     
     private func setupDirectionsButton(){
         addSubview(directionsButton)
-        directionsButton.anchor(left: locationTitleLabel.rightAnchor, right:rightAnchor, paddingLeft: 8, paddingRight: 17, width: 50, height: 50)
+        directionsButton.anchor(left: locationTitleLabel.rightAnchor, right:rightAnchor, paddingLeft: 8, paddingRight: 17, width: 40, height: 40)
         directionsButton.centerY(inView: self)
     }
     
