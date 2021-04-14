@@ -10,8 +10,10 @@ A sample app that demonstrates assigning annotations, defining landmarks/destina
 ## Features
 
 - Show the user's location
+- Center the map view to the user's location
 - Find a landmark thru the search bar
 - Create a path to the destination landmark by selecting the landmark during search
+- Zoom to destination's region
 - Refering the destination to Maps
 
 ---
